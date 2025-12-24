@@ -22,11 +22,17 @@ public class Bond
     {
         if (string.IsNullOrWhiteSpace(isin))
         {
-            throw new ArgumentException("ISIN cannot be null or empty.", nameof(isin));
+            throw new ArgumentException(
+                "ISIN cannot be null, contain whitespace or empty.",
+                nameof(isin)
+            );
         }
         if (string.IsNullOrWhiteSpace(currency))
         {
-            throw new ArgumentException("Currency cannot be null or empty.", nameof(currency));
+            throw new ArgumentException(
+                "Currency cannot be null, contain whitespace or empty.",
+                nameof(currency)
+            );
         }
 
         if (faceValue <= 0)
@@ -44,7 +50,7 @@ public class Bond
         {
             throw new ArgumentOutOfRangeException(
                 nameof(couponRate),
-                "Coupon rate cannot be negative)."
+                "Coupon rate cannot be negative."
             );
         }
         if (couponFrequency <= 0)

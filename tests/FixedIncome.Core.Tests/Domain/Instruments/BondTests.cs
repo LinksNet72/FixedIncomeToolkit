@@ -8,7 +8,7 @@ public class BondTests
     private readonly Bond _bond = BuildValidBond;
 
     [Fact]
-    public void ShouldInitaliseSuccessfulBond()
+    public void ShouldInitialiseSuccessfulBond()
     {
         _bond.Isin.Should().NotBeNullOrEmpty();
         _bond.Currency.Should().NotBeNullOrEmpty();
@@ -19,31 +19,60 @@ public class BondTests
     }
 
     [Theory]
-    [InlineData("", "USD", 1000, 5.0, 2)]
-    [InlineData("US1234567890", " ", 1000, 5.0, 2)]
-    [InlineData("US1234567890", "USD", -1000, 5.0, 2)]
-    [InlineData("US1234567890", "USD", 1000, -5.0, 2)]
-    [InlineData("US1234567890", "USD", 1000, 5.0, 0)]
-    public void ShouldThrowExceptionForInvalidBondParameters(
+    [InlineData("", "GBP", "ISIN cannot be null, contain whitespace or empty. (Parameter 'isin')")]
+    [InlineData(
+        "GB1234567890",
+        " ",
+        "Currency cannot be null, contain whitespace or empty. (Parameter 'currency')"
+    )]
+    public void ShouldThrowArgumentExceptionForInvalidBondParameters(
         string isin,
         string currency,
-        decimal faceValue,
-        decimal couponRate,
-        int couponFrequency
+        string errorMessage
     )
     {
         var act = () =>
             new Bond(
-                isin: isin,
-                currency: currency,
-                faceValue: faceValue,
-                maturityDate: new DateTimeOffset(DateTime.Today),
-                couponRate: couponRate,
-                issueDate: new DateTimeOffset(DateTime.Today.AddYears(2)),
-                couponFrequency: couponFrequency
+                isin,
+                currency,
+                1000m,
+                new DateTimeOffset(DateTime.Today.AddYears(5)),
+                5.0m,
+                new DateTimeOffset(DateTime.Today),
+                2
             );
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>().WithMessage(errorMessage);
+    }
+
+    [Theory]
+    [InlineData(-1000, 5.0, 2, "Face value must be greater than zero. (Parameter 'faceValue')")]
+    [InlineData(1000, -5.0, 2, "Coupon rate cannot be negative. (Parameter 'couponRate')")]
+    [InlineData(
+        1000,
+        5.0,
+        0,
+        "Coupon frequency must be a positive number greater than zero. (Parameter 'couponFrequency')"
+    )]
+    public void ShouldThrowArgumentOutOfRangeExceptionForInvalidBondParameters(
+        decimal faceValue,
+        decimal couponRate,
+        int couponFrequency,
+        string errorMessage
+    )
+    {
+        var act = () =>
+            new Bond(
+                "GB1234567890",
+                "GBP",
+                faceValue,
+                new DateTimeOffset(DateTime.Today.AddYears(5)),
+                couponRate,
+                new DateTimeOffset(DateTime.Today),
+                couponFrequency
+            );
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithMessage(errorMessage);
     }
 
     [Fact]
@@ -51,13 +80,13 @@ public class BondTests
     {
         var act = () =>
             new Bond(
-                isin: "US1234567890",
-                currency: "USD",
-                faceValue: 1000m,
-                maturityDate: new DateTimeOffset(DateTime.Today.AddYears(-1)),
-                couponRate: 5.0m,
-                issueDate: new DateTimeOffset(DateTime.Today),
-                couponFrequency: 2
+                "GB1234567890",
+                "GBP",
+                1000m,
+                new DateTimeOffset(DateTime.Today.AddYears(-1)),
+                5.0m,
+                new DateTimeOffset(DateTime.Today),
+                2
             );
 
         act.Should()
